@@ -30,11 +30,9 @@ jobs:
         uses: astral-sh/setup-uv@v6
 
       - name: Install the project
-        working-directory: backend
         run: uv sync --locked --all-extras --dev
 
       - name: Check types with ty
-        working-directory: backend
         run: |
           set -o pipefail
           uvx ty check | tee ty_output.log
