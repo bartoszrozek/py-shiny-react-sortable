@@ -230,17 +230,6 @@ wheels = [
 ]
 
 [[package]]
-name = "py-shiny-react-sortable"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "shiny" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "shiny", specifier = ">=1.4.0" }]
-
-[[package]]
 name = "python-multipart"
 version = "0.0.20"
 source = { registry = "https://pypi.org/simple" }
@@ -260,6 +249,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/a8/b8/d16eb579277f3de9e
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ad/3f/11dd4cd4f39e05128bfd20138faea57bec56f9ffba6185d276e3107ba5b2/questionary-2.1.0-py3-none-any.whl", hash = "sha256:44174d237b68bc828e4878c763a9ad6790ee61990e0ae72927694ead57bab8ec", size = 36747, upload-time = "2024-12-29T11:49:16.734Z" },
 ]
+
+[[package]]
+name = "react-sortable"
+version = "0.1"
+source = { editable = "." }
+dependencies = [
+    { name = "shiny" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "shiny", specifier = ">=0.6.0" }]
 
 [[package]]
 name = "setuptools"
