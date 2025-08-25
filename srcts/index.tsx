@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ReactSortable } from "react-sortablejs";
+
+import { makeInputBinding } from "@posit-dev/shiny-bindings-core";
+import { createRoot } from "react-dom/client";
 
 interface ItemType {
   id: number;
   name: string;
   children?: ItemType[];
 }
-
-import { makeInputBinding } from "@posit-dev/shiny-bindings-core";
-import { createRoot } from "react-dom/client";
 
 // Generates a new input binding that renders the supplied react component
 // into the root of the webcomponent.
@@ -19,10 +19,15 @@ import { createRoot } from "react-dom/client";
 makeInputBinding({
   name: "react-sortable-input",
   selector: "react-sortable-input",
-  setup: (el: HTMLElement, updateValue: (v: any, deferred?: boolean) => void) => {
+  setup: (
+    el: HTMLElement,
+    updateValue: (v: any, deferred?: boolean) => void
+  ) => {
     // Try a few attribute name variants (HTML attributes are usually lowercased)
     const raw =
-      el.getAttribute("initialValue") || el.getAttribute("initialvalue") || el.getAttribute("data-initial-value");
+      el.getAttribute("initialValue") ||
+      el.getAttribute("initialvalue") ||
+      el.getAttribute("data-initial-value");
 
     let parsedInitial: ItemType[] = [];
 
@@ -36,17 +41,18 @@ makeInputBinding({
       }
     }
 
-    // Inform Shiny about the initial value
+    // Set the initial value from Python
     updateValue(parsedInitial);
 
-    // Render the React component into the custom element's root
     createRoot(el).render(
-      <SortableInput initialValue={parsedInitial} updateValue={(x: ItemType[]) => updateValue(x)} />
+      <SortableInput
+        initialValue={parsedInitial}
+        updateValue={updateValue}
+      />
     );
   },
 });
 
-// Extracted SortableInput component
 function SortableInput({
   initialValue,
   updateValue,
@@ -66,30 +72,6 @@ function SortableInput({
     updateValue(items);
   }, [items, updateValue]);
 
-  // immutably replace the list at the given path (pathIds is array of item ids)
-  const updateListAtPath = (prev: ItemType[], pathIds: number[], newList: ItemType[]): ItemType[] => {
-    const copy: ItemType[] = JSON.parse(JSON.stringify(prev));
-    if (pathIds.length === 0) {
-      return newList;
-    }
-    let cur: any = copy;
-    for (let i = 0; i < pathIds.length; i++) {
-      const id = pathIds[i];
-      const itemIdx = cur.findIndex((it: ItemType) => it.id === id);
-      if (itemIdx === -1) return prev;
-      if (i === pathIds.length - 1) {
-        cur[itemIdx].children = newList;
-        return copy;
-      }
-      cur[itemIdx].children = cur[itemIdx].children || [];
-      cur = cur[itemIdx].children;
-    }
-    return copy;
-  };
-
-  const onListChange = (pathIds: number[], newList: ItemType[]) => {
-    setItems((prev) => updateListAtPath(prev, pathIds, newList));
-  };
 
   // Helper: return reference to the array at a given id-path inside `copy`
   const getListAtPath = (root: ItemType[], path: number[]): ItemType[] => {
@@ -105,8 +87,8 @@ function SortableInput({
   };
 
   const handleEnd = (evt: any) => {
+    console.log("handleEnd", evt);
     try {
-
       const computePath = (el: HTMLElement) => {
         const path: number[] = [];
         let cur: HTMLElement | null = el as HTMLElement | null;
@@ -124,6 +106,7 @@ function SortableInput({
       const toPath = computePath(evt.to as HTMLElement);
       const oldIndex = typeof evt.oldIndex === "number" ? evt.oldIndex : 0;
       let newIndex = typeof evt.newIndex === "number" ? evt.newIndex : 0;
+      console.log("fromPath", fromPath, "toPath", toPath, oldIndex, newIndex);
 
       setItems((prev) => {
         const copy: ItemType[] = JSON.parse(JSON.stringify(prev));
@@ -136,12 +119,6 @@ function SortableInput({
         if (removed.length === 0) return prev;
         const moved = removed[0];
 
-        // if source and target are same list and removal occurred before target
-        // index, adjust the insertion index
-        if (fromList === toList && oldIndex < newIndex) {
-          newIndex = newIndex - 1;
-        }
-
         toList.splice(newIndex, 0, moved);
         return copy;
       });
@@ -151,13 +128,9 @@ function SortableInput({
     }
   };
 
-  // recursive renderer: each list is a ReactSortable with group 'nested'
   const renderList = (list: ItemType[], pathIds: number[]) => (
     <ReactSortable
       list={[...list]}
-      // we handle mutations via onEnd to compute stable id-paths from the DOM
-      // (react-sortablejs may call setList with an incomplete context), so make
-      // setList a no-op here and use the onEnd handler below.
       setList={() => {}}
       onEnd={(evt: any) => handleEnd(evt)}
       group="nested"
@@ -173,15 +146,22 @@ function SortableInput({
           className="list-group-item d-flex flex-column"
           style={{ cursor: "move" }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
             <span>{item.name}</span>
           </div>
-          <div style={{ marginLeft: 16, marginTop: 8 }}>{renderList(item.children || [], [...pathIds, item.id])}</div>
+          <div style={{ marginLeft: 16, marginTop: 8 }}>
+            {renderList(item.children || [], [...pathIds, item.id])}
+          </div>
         </div>
       ))}
     </ReactSortable>
   );
 
-  // mark the top-level container so DOM-path traversal knows where to stop
   return <div data-root="true">{renderList(items, [])}</div>;
 }

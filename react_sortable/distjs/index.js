@@ -25955,7 +25955,13 @@ Please read the updated README.md at https://github.com/SortableJS/react-sortabl
       }
       updateValue(parsedInitial);
       (0, import_client.createRoot)(el).render(
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SortableInput, { initialValue: parsedInitial, updateValue: (x) => updateValue(x) })
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          SortableInput,
+          {
+            initialValue: parsedInitial,
+            updateValue
+          }
+        )
       );
     }
   });
@@ -25970,29 +25976,6 @@ Please read the updated README.md at https://github.com/SortableJS/react-sortabl
     (0, import_react.useEffect)(() => {
       updateValue(items);
     }, [items, updateValue]);
-    const updateListAtPath = (prev, pathIds, newList) => {
-      const copy = JSON.parse(JSON.stringify(prev));
-      if (pathIds.length === 0) {
-        return newList;
-      }
-      let cur = copy;
-      for (let i = 0; i < pathIds.length; i++) {
-        const id = pathIds[i];
-        const itemIdx = cur.findIndex((it) => it.id === id);
-        if (itemIdx === -1)
-          return prev;
-        if (i === pathIds.length - 1) {
-          cur[itemIdx].children = newList;
-          return copy;
-        }
-        cur[itemIdx].children = cur[itemIdx].children || [];
-        cur = cur[itemIdx].children;
-      }
-      return copy;
-    };
-    const onListChange = (pathIds, newList) => {
-      setItems((prev) => updateListAtPath(prev, pathIds, newList));
-    };
     const getListAtPath = (root, path) => {
       let cur = root;
       for (let i = 0; i < path.length; i++) {
@@ -26006,6 +25989,7 @@ Please read the updated README.md at https://github.com/SortableJS/react-sortabl
       return cur;
     };
     const handleEnd = (evt) => {
+      console.log("handleEnd", evt);
       try {
         const computePath = (el) => {
           const path = [];
@@ -26022,6 +26006,7 @@ Please read the updated README.md at https://github.com/SortableJS/react-sortabl
         const toPath = computePath(evt.to);
         const oldIndex = typeof evt.oldIndex === "number" ? evt.oldIndex : 0;
         let newIndex = typeof evt.newIndex === "number" ? evt.newIndex : 0;
+        console.log("fromPath", fromPath, "toPath", toPath, oldIndex, newIndex);
         setItems((prev) => {
           const copy = JSON.parse(JSON.stringify(prev));
           const fromList = getListAtPath(copy, fromPath);
@@ -26030,9 +26015,6 @@ Please read the updated README.md at https://github.com/SortableJS/react-sortabl
           if (removed.length === 0)
             return prev;
           const moved = removed[0];
-          if (fromList === toList && oldIndex < newIndex) {
-            newIndex = newIndex - 1;
-          }
           toList.splice(newIndex, 0, moved);
           return copy;
         });
@@ -26059,7 +26041,17 @@ Please read the updated README.md at https://github.com/SortableJS/react-sortabl
             className: "list-group-item d-flex flex-column",
             style: { cursor: "move" },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", justifyContent: "space-between", width: "100%" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: item.name }) }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                "div",
+                {
+                  style: {
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%"
+                  },
+                  children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: item.name })
+                }
+              ),
               /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginLeft: 16, marginTop: 8 }, children: renderList(item.children || [], [...pathIds, item.id]) })
             ]
           },

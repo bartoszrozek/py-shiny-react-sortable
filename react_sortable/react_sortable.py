@@ -1,4 +1,5 @@
 from pathlib import PurePath
+import json
 
 from htmltools import HTMLDependency, Tag
 
@@ -17,20 +18,18 @@ react_sortable_deps = HTMLDependency(
     script={"src": "index.js", "type": "module"},
 )
 
-
-def input_react_sortable(id: str, value: list[dict[str, str]] | None = None):
+def input_react_sortable(id: str, items: list[dict[str, str]] | None = None):
     """
     A shiny input.
     """
-    import json
 
-    # Avoid mutable default and ensure we have a list
-    if value is None:
-        value = []
+    # Fail fast
+    if items is None:
+        raise ValueError("You must provide an `items` argument.")
 
     return Tag(
         "react-sortable-input",
         react_sortable_deps,
         id=resolve_id(id),
-        initialValue=json.dumps(value),
+        initialValue=json.dumps(items),
     )

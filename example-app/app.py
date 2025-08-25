@@ -20,7 +20,7 @@ items_nested = [
 ]
 app_ui = ui.page_fluid(
     ui.h2("React Sortable Input"),
-    input_react_sortable("sortable", value=items_nested),
+    input_react_sortable("sortable", items=items_nested),
     ui.br(),
     ui.h2("Test output"),
     ui.output_text("test_output"),
