@@ -26,7 +26,9 @@ git+https://github.com/bartoszrozek/py-shiny-react-sortable.git
 1. Import and use the component in your Shiny app:
 
 ```python
-from react_sortable import react_sortable
+from react_sortable import input_react_sortable
+
+from shiny import App, ui, render
 
 # Example usage in a Shiny UI
 items_nested = [
